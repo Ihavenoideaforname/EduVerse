@@ -2,7 +2,39 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@if(TempData["WelcomeMessage"] != null)
+{
+    <div id="popup" class="popup">
+        <p>@TempData["WelcomeMessage"]</p>
+    </div>
+}
+
+<div class="container py-5 d-flex justify-content-center">
+    <div class="text-center bg-white p-5 rounded-4 shadow">
+        
+        <h1 class="display-4 mb-3">Welcome to EduVerse</h1>
+        <p class="lead mb-4">Begin your journey to the future of education.</p>
+
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a class="btn btn-primary btn-lg">Sign Up - New schools</a>
+            <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Login">Sign In – Staff, Students & Parents</a>
+        </div>
+
+    </div>
 </div>
+
+<script>
+    window.onload = function() {
+        var popup = document.getElementById("popup");
+        
+        if(popup) {
+            popup.style.backgroundColor = "#4CAF50";
+            popup.classList.add("show");
+
+            setTimeout(function() {
+                popup.classList.add("hide");
+                setTimeout(() => popup.style.display = "none", 500);
+            }, 3000);
+        }
+    };
+</script>
