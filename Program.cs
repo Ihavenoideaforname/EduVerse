@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
 using EduVerse.Data;
+using EduVerse.Models;
+using Microsoft.AspNetCore.Identity;
+using EduVerse.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,7 @@ if(builder.Environment.IsDevelopment())
 string connString = builder.Configuration["ORACLE_CONN_STRING"] ?? throw new InvalidOperationException("Missing connection string!");
 
 builder.Services.AddDbContext<EduVerseContext>(options => options.UseOracle(connString));
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
@@ -45,6 +49,8 @@ using(var connection = new OracleConnection(connString))
 }
 
 var app = builder.Build();
+
+await DataSeeder.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if(!app.Environment.IsDevelopment())

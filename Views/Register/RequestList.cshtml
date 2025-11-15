@@ -1,0 +1,57 @@
+﻿@model List<RequestListViewModel>
+@{
+    ViewData["Title"] = "Sign Up Requests";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="get" class="mb-4">
+    <div class="d-flex gap-2">
+
+        <input type="text" name="search" value="@Context.Request.Query["search"]" class="form-control" placeholder="Search school or principal..." />
+
+        <select name="status" class="form-select">
+            <option value="">All</option>
+            <option value="Pending" selected="@(Context.Request.Query["status"]=="Pending")">Pending</option>
+            <option value="Approved" selected="@(Context.Request.Query["status"]=="Approved")">Approved</option>
+            <option value="Rejected" selected="@(Context.Request.Query["status"]=="Rejected")">Rejected</option>
+        </select>
+        
+        <select name="sort" class="form-select">
+            <option value="date_desc" selected="@(Context.Request.Query["sort"]=="date_desc")">Newest</option>
+            <option value="date_asc" selected="@(Context.Request.Query["sort"]=="date_asc")">Oldest</option>
+        </select>
+
+        <button class="btn btn-primary">Apply</button>
+    </div>
+</form>
+
+<table class="table table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>School</th>
+            <th>Principal</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var request in Model)
+        {
+            <tr>
+                <td>@request.SchoolName</td>
+                <td>@request.PrincipalName</td>
+                <td>@request.RequestDate.ToString("dd-MM-yyyy")</td>
+                <td>
+                    <span class="badge @request.StatusClass px-3 py-2">
+                        @request.RequestStatus
+                    </span>
+                </td>
+                <td>
+                    <a asp-action="RequestDetails" asp-route-id="@request.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

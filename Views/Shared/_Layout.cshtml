@@ -1,4 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+
+@{
+    bool IsSignIn = Context.Session.GetInt32("UserId") != null ? true : false;
+    bool IsAdmin = false;
+
+    if(IsSignIn)
+    {
+        IsAdmin = Context.User.FindFirst(ClaimTypes.Role)?.Value.ToString() == "ADMIN" ? true : false;
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -25,9 +37,16 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+
+                        @if(IsAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="RequestList">Sign Up Requests</a>
+                            </li>
+                        }
                     </ul>
                     <ul class="navbar-nav ms-auto">
-                        @if(Context.Session.GetInt32("UserId") == null)
+                        @if(!IsSignIn)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Sign In</a>
@@ -35,6 +54,9 @@
                         }
                         else
                         {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Sign Out</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile">Profile</a>
                             </li>

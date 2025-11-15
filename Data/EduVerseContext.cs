@@ -13,6 +13,7 @@ namespace EduVerse.Data
 
         public override DbSet<User> Users { get; set; }
         public override DbSet<Role> Roles { get; set; }
+        public DbSet<SignUpRequest> SignUpRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,10 @@ namespace EduVerse.Data
                     .IsRequired()
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<SignUpRequest>()
+                .Property(sur => sur.Status)
+                .HasConversion<string>();
 
             foreach(var entityType in modelBuilder.Model.GetEntityTypes())
             {

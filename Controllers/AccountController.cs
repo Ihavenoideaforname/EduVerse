@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using EduVerse.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduVerse.Controllers
 {
@@ -40,11 +41,16 @@ namespace EduVerse.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if(ModelState.IsValid)
             {
-                var user = _context.Users.Where(u => u.UserName == model.UserIdentifier || u.Email == model.UserIdentifier).FirstOrDefault();
+                var user = _context.Users
+                    .Where(u => u.UserName == model.UserIdentifier || u.Email == model.UserIdentifier)
+                    .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                    .FirstOrDefault();
 
                 if(user == null || !VerifyPassword(model.Password, user))
                 {
@@ -52,11 +58,15 @@ namespace EduVerse.Controllers
                     return View(model);
                 }
 
+                bool IsAdmin = user.UserRoles.Count(ur => ur.Role!.NormalizedName == "ADMIN") > 0;
+                string MostImportantRole = IsAdmin ? "ADMIN" : "USER";
+
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName!),
-                    new Claim(ClaimTypes.Email, user.Email!)
+                    new Claim(ClaimTypes.Email, user.Email!),
+                    new Claim(ClaimTypes.Role, MostImportantRole)
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, "RememberMeCookie");
@@ -75,6 +85,14 @@ namespace EduVerse.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync("RememberMeCookie");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
         }
 
         private bool VerifyPassword(string enteredPassword, User user)

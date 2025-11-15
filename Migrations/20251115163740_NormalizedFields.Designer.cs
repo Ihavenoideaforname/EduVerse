@@ -3,6 +3,7 @@ using System;
 using EduVerse.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 
@@ -11,9 +12,11 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace EduVerse.Migrations
 {
     [DbContext(typeof(EduVerseContext))]
-    partial class EduVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20251115163740_NormalizedFields")]
+    partial class NormalizedFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

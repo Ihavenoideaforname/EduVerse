@@ -3,6 +3,7 @@ using System;
 using EduVerse.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 
@@ -11,9 +12,11 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace EduVerse.Migrations
 {
     [DbContext(typeof(EduVerseContext))]
-    partial class EduVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20251114190937_SignUpRequests")]
+    partial class SignUpRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,21 +73,6 @@ namespace EduVerse.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("NVARCHAR2(100)");
-
-                    b.Property<string>("NormalizedSchoolEmail")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("NVARCHAR2(100)");
-
-                    b.Property<string>("NormalizedSchoolName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("NVARCHAR2(200)");
-
-                    b.Property<string>("NormalizedSchoolNameShortcut")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("NVARCHAR2(20)");
 
                     b.Property<string>("PostalCode")
                         .IsRequired()

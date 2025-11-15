@@ -1,0 +1,191 @@
+﻿@model SignUpRequestViewModel
+@{
+    ViewData["Title"] = "Send Sign Up Request";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <section>
+            <form asp-action="SendRequest" method="post">
+                <hr />
+                <div class="form-floating mb-3">
+                    <input asp-for="SchoolName" class="form-control" placeholder="School Name" />
+                    <label asp-for="SchoolName"></label>
+                    <span asp-validation-for="SchoolName" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="SchoolNameShortcut" class="form-control" placeholder="Shortcut" />
+                    <label asp-for="SchoolNameShortcut"></label>
+                    <span asp-validation-for="SchoolNameShortcut" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="SchoolEmail" class="form-control" placeholder="Email" />
+                    <label asp-for="SchoolEmail"></label>
+                    <span asp-validation-for="SchoolEmail" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="SchoolPhoneNumber" class="form-control" placeholder="Phone Number" />
+                    <label asp-for="SchoolPhoneNumber"></label>
+                    <span asp-validation-for="SchoolPhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Street" class="form-control" placeholder="Street" />
+                    <label asp-for="Street"></label>
+                    <span asp-validation-for="Street" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="BuildingNumber" class="form-control" placeholder="Building Number" />
+                    <label asp-for="BuildingNumber"></label>
+                    <span asp-validation-for="BuildingNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="PostalCode" class="form-control" placeholder="Zip Code" />
+                    <label asp-for="PostalCode"></label>
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="City" class="form-control" placeholder="City" />
+                    <label asp-for="City"></label>
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="State" class="form-control" placeholder="State" />
+                    <label asp-for="State"></label>
+                    <span asp-validation-for="State" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Country" class="form-control" placeholder="Country" />
+                    <label asp-for="Country"></label>
+                    <span asp-validation-for="Country" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="PrincipalName" class="form-control" placeholder="Principal Name" />
+                    <label asp-for="PrincipalName"></label>
+                    <span asp-validation-for="PrincipalName" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="PrincipalSurname" class="form-control" placeholder="Principal Surname" />
+                    <label asp-for="PrincipalSurname"></label>
+                    <span asp-validation-for="PrincipalSurname" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <textarea asp-for="RequestLetter" class="form-control" placeholder="Request Letter" readonly></textarea>
+                    <label asp-for="RequestLetter"></label>
+                    <span asp-validation-for="RequestLetter" class="text-danger"></span>
+                </div>
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="d-flex justify-content-between gap-3">
+                    <a class="w-50 btn btn-lg btn-secondary" asp-controller="Home" asp-action="Index">Cancel</a>
+                    <button type="submit" class="w-50 btn btn-lg btn-primary">Send Request</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const fields = {
+            SchoolName: "School Name",
+            SchoolNameShortcut: "Shortcut",
+            SchoolEmail: "Email",
+            SchoolPhoneNumber: "Phone Number",
+            Street: "Street",
+            BuildingNumber: "Building Number",
+            PostalCode: "Postal Code",
+            City: "City",
+            State: "State",
+            Country: "Country",
+            PrincipalName: "Principal Name",
+            PrincipalSurname: "Principal Surname"
+        };
+
+        const letterArea = document.querySelector("textarea[name='RequestLetter']");
+        letterArea.style.resize = "none";
+        letterArea.style.overflow = "hidden";
+
+        function getCurrentDate() {
+            const date = new Date();
+            return date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            });
+        }
+
+        const today = getCurrentDate();
+        const letterTemplate = `
+Date: ${today}
+
+Sign Up Request Letter
+
+School: {{SchoolName}}
+Shortcut: {{SchoolNameShortcut}}
+Email: {{SchoolEmail}}
+Phone: {{SchoolPhoneNumber}}
+
+Address:
+{{Street}} {{BuildingNumber}}
+{{PostalCode}}, {{City}}
+{{State}}, {{Country}}
+
+Principal:
+{{PrincipalName}} {{PrincipalSurname}}
+
+Dear EduVerse Administration,
+
+We would like to request that our school sign up for the EduVerse platform.
+
+Kind regards,
+{{PrincipalName}} {{PrincipalSurname}}
+`.trim();
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function buildLetter(values) {
+            let text = letterTemplate;
+            Object.keys(fields).forEach(fieldName => {
+                const value = values[fieldName] ? values[fieldName].trim() : `{{${fieldName}}}`;
+                text = text.replace(new RegExp(`{{${fieldName}}}`, 'g'), value);
+            });
+            return text;
+        }
+
+        const inputValues = {};
+
+        letterArea.value = buildLetter(inputValues);
+        autoResizeTextarea(letterArea);
+
+        Object.keys(fields).forEach(fieldName => {
+            let input = document.querySelector(`[name='${fieldName}']`);
+
+            input.addEventListener("input", function () {
+                inputValues[fieldName] = input.value;
+                letterArea.value = buildLetter(inputValues);
+                autoResizeTextarea(letterArea);
+            });
+        });
+
+    });
+</script>
+
