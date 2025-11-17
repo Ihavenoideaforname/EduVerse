@@ -16,6 +16,7 @@ string connString = builder.Configuration["ORACLE_CONN_STRING"] ?? throw new Inv
 
 builder.Services.AddDbContext<EduVerseContext>(options => options.UseOracle(connString));
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ISchoolService, SchoolService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();

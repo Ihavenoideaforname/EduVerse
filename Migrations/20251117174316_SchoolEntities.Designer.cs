@@ -3,6 +3,7 @@ using System;
 using EduVerse.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 
@@ -11,9 +12,11 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace EduVerse.Migrations
 {
     [DbContext(typeof(EduVerseContext))]
-    partial class EduVerseContextModelSnapshot : ModelSnapshot
+    [Migration("20251117174316_SchoolEntities")]
+    partial class SchoolEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,7 +168,7 @@ namespace EduVerse.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("RAW(16)");
 
-                    b.Property<Guid?>("GroupId")
+                    b.Property<Guid>("GroupId")
                         .HasColumnType("RAW(16)");
 
                     b.Property<Guid>("SchoolId")
@@ -573,7 +576,8 @@ namespace EduVerse.Migrations
                     b.HasOne("EduVerse.Models.Group", "Group")
                         .WithMany("Students")
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("EduVerse.Models.School", "School")
                         .WithMany("SchoolAccounts")

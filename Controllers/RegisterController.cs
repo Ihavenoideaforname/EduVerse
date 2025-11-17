@@ -4,16 +4,19 @@ using EduVerse.Models;
 using Microsoft.EntityFrameworkCore;
 using EduVerse.Enums;
 using System.Security.Claims;
+using EduVerse.Services;
 
 namespace EduVerse.Controllers
 {
     public class RegisterController : Controller
     {
         private readonly EduVerseContext _context;
+        private readonly ISchoolService _schoolService;
 
-        public RegisterController(EduVerseContext context)
+        public RegisterController(EduVerseContext context, ISchoolService schoolService)
         {
             _context = context;
+            _schoolService = schoolService;
         }
 
         [HttpGet]
@@ -192,6 +195,8 @@ namespace EduVerse.Controllers
             Request.ReviewedBy = AdminName;
 
             await _context.SaveChangesAsync();
+            await _schoolService.CreateSchoolAsync(Request.Id);
+
             return RedirectToAction("RequestDetails", new { id });
         }
 

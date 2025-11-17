@@ -6,6 +6,9 @@ namespace EduVerse.Models
 {
     public class User : IdentityUser<Guid>
     {
+        public Guid? SchoolAccountId { get; set; }
+        public virtual SchoolAccount? SchoolAccount { get; set; }
+
         [Required]
         [DataType(DataType.Text)]
         [MaxLength(50)]

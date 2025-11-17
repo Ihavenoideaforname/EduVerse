@@ -2,11 +2,35 @@
 
 @{
     bool IsSignIn = Context.Session.GetInt32("UserId") != null ? true : false;
+
     bool IsAdmin = false;
+    bool IsStudent = false;
+    bool IsParent = false;
+    bool IsStaff = false;
+    bool CanManageAccounts = false;
+    bool CanManageRoles = false;
+    bool CanManageGroups = false;
+    bool CanManageCourses = false;
+    bool CanManageStudents = false;
+
+    Guid SchoolGuid = Guid.Empty;
 
     if(IsSignIn)
     {
         IsAdmin = Context.User.FindFirst(ClaimTypes.Role)?.Value.ToString() == "ADMIN" ? true : false;
+
+        if(!IsAdmin)
+        {
+            IsStudent = Context.Session.GetString("IsStudent") == "True";
+            IsParent = Context.Session.GetString("IsParent") == "True";
+            IsStaff = Context.Session.GetString("IsStaff") == "True";
+            CanManageAccounts = Context.Session.GetString("CanManageAccounts") == "True";
+            CanManageRoles = Context.Session.GetString("CanManageRoles") == "True";
+            CanManageGroups = Context.Session.GetString("CanManageGroups") == "True";
+            CanManageCourses = Context.Session.GetString("CanManageCourses") == "True";
+            CanManageStudents = Context.Session.GetString("CanManageStudents") == "True";
+            SchoolGuid = Guid.Parse(Context.Session.GetString("SchoolId")!);
+        }
     }
 }
 
@@ -43,6 +67,18 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Register" asp-action="RequestList">Sign Up Requests</a>
                             </li>
+                        }
+                        else
+                        {
+                            @if(IsStaff)
+                            {
+                                @if(CanManageAccounts)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="SchoolManager" asp-action="ManageAccounts" asp-route-SchoolId="@SchoolGuid">Manage Accounts</a>
+                                    </li>
+                                }
+                            }
                         }
                     </ul>
                     <ul class="navbar-nav ms-auto">

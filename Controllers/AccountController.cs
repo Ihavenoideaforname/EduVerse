@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using EduVerse.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace EduVerse.Controllers
 {
@@ -30,7 +31,32 @@ namespace EduVerse.Controllers
                 {
                     HttpContext.Session.SetString("UserId", userId.ToString());
 
-                    var user = _context.Users.FirstOrDefault(c => c.Id == userId);
+                    var user = _context.Users.Where(u => u.Id == userId)
+                        .Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+                        .Include(u => u.SchoolAccount)
+                        .FirstOrDefault();
+
+                    bool IsAdmin = user!.UserRoles.Count(ur => ur.Role!.NormalizedName == "ADMIN") > 0;
+
+                    if(!IsAdmin && user.SchoolAccount != null)
+                    {
+                        var Role = _context.SchoolRoles.Where(sr => sr.Id == user.SchoolAccount.SchoolRoleId).FirstOrDefault();
+
+                        if(Role != null)
+                        {
+                            HttpContext.Session.SetString("RoleId", Role.Id.ToString());
+                            HttpContext.Session.SetString("SchoolId", user.SchoolAccount.SchoolId.ToString());
+                            HttpContext.Session.SetString("IsStudent", Role.IsStudent.ToString());
+                            HttpContext.Session.SetString("IsParent", Role.IsParent.ToString());
+                            HttpContext.Session.SetString("IsStaff", Role.IsStaff.ToString());
+                            HttpContext.Session.SetString("CanManageAccounts", Role.CanManageAccounts.ToString());
+                            HttpContext.Session.SetString("CanManageRoles", Role.CanManageRoles.ToString());
+                            HttpContext.Session.SetString("CanManageGroups", Role.CanManageGroups.ToString());
+                            HttpContext.Session.SetString("CanManageCourses", Role.CanManageCourses.ToString());
+                            HttpContext.Session.SetString("CanManageStudents", Role.CanManageStudents.ToString());
+                        }
+                    }
 
                     TempData["WelcomeMessage"] = $"Login Successful! Welcome back {user?.UserName ?? "User"}";
                     return RedirectToAction("Index", "Home");
@@ -50,6 +76,7 @@ namespace EduVerse.Controllers
                     .Where(u => u.UserName == model.UserIdentifier || u.Email == model.UserIdentifier)
                     .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
+                    .Include(u => u.SchoolAccount)
                     .FirstOrDefault();
 
                 if(user == null || !VerifyPassword(model.Password, user))
@@ -80,6 +107,25 @@ namespace EduVerse.Controllers
 
                 await HttpContext.SignInAsync("RememberMeCookie", new ClaimsPrincipal(claimsIdentity), RememberMeProperties);
                 HttpContext.Session.SetString("UserId", user.Id.ToString());
+
+                if(!IsAdmin && user.SchoolAccount != null)
+                {
+                    var Role = _context.SchoolRoles.Where(sr => sr.Id == user.SchoolAccount.SchoolRoleId).FirstOrDefault();
+
+                    if(Role != null)
+                    {
+                        HttpContext.Session.SetString("RoleId", Role.Id.ToString());
+                        HttpContext.Session.SetString("SchoolId", user.SchoolAccount.SchoolId.ToString());
+                        HttpContext.Session.SetString("IsStudent", Role.IsStudent.ToString());
+                        HttpContext.Session.SetString("IsParent", Role.IsParent.ToString());
+                        HttpContext.Session.SetString("IsStaff", Role.IsStaff.ToString());
+                        HttpContext.Session.SetString("CanManageAccounts", Role.CanManageAccounts.ToString());
+                        HttpContext.Session.SetString("CanManageRoles", Role.CanManageRoles.ToString());
+                        HttpContext.Session.SetString("CanManageGroups", Role.CanManageGroups.ToString());
+                        HttpContext.Session.SetString("CanManageCourses", Role.CanManageCourses.ToString());
+                        HttpContext.Session.SetString("CanManageStudents", Role.CanManageStudents.ToString());
+                    }
+                }
 
                 return RedirectToAction("Index", "Home");
             }
