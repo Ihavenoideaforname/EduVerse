@@ -1,0 +1,86 @@
+﻿@model NewSchoolAccountViewModel
+@{
+    ViewData["Title"] = "Create New School Account";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <section>
+            <form asp-action="AddNewSchoolAccount" method="post">
+                <hr />
+                <input asp-for="SchoolId" value="@ViewBag.SchoolId" hidden/>
+                <div class="form-floating mb-3">
+                    <input asp-for="Name" class="form-control" autocomplete="name" aria-required="true" placeholder="Enter user name" />
+                    <label asp-for="Name" class="form-label">Name</label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Surname" class="form-control" autocomplete="surname" aria-required="true" placeholder="Enter user surname" />
+                    <label asp-for="Surname" class="form-label">Surname</label>
+                    <span asp-validation-for="Surname" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <select asp-for="SchoolRoleId" class="form-select">
+                        <option value="@Guid.Empty">All Roles</option>
+                        @foreach(var role in ViewBag.SchoolRoles)
+                        {
+                            <option value="@role.Id">@role.Name</option>
+                        }
+                    </select>
+                    <label asp-for="SchoolRoleId" class="form-label">School Role</label>
+                    <span asp-validation-for="SchoolRoleId" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Username" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter user username" readonly/>
+                    <label asp-for="Username" class="form-label">Username</label>
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Email" class="form-control" autocomplete="Email" aria-required="true" placeholder="Enter user email" readonly/>
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter user password" readonly/>
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <div class="d-flex justify-content-between gap-3">
+                    <a class="w-50 btn btn-lg btn-secondary" asp-controller="SchoolManager" asp-action="ManageAccounts" asp-route-SchoolId="@ViewBag.SchoolId">Cancel</a>
+                    <button type="submit" class="w-50 btn btn-lg btn-primary">Add New School Account</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const nameInput = document.querySelector('input[name="Name"]');
+        const surnameInput = document.querySelector('input[name="Surname"]');
+        const usernameInput = document.querySelector('input[name="Username"]');
+        const emailInput = document.querySelector('input[name="Email"]');
+        const passwordInput = document.querySelector('input[name="Password"]');
+
+        const shortcut = "@ViewBag.Shortcut".toLowerCase();
+
+        function updateFields() {
+            const name = nameInput.value.trim().toLowerCase();
+            const surname = surnameInput.value.trim().toLowerCase();
+
+            if (name && surname) {
+                const base = `${name}.${surname}`;
+
+                usernameInput.value = base;
+                emailInput.value = `${base}@@eduverse.${shortcut}.edu.com`;
+                passwordInput.value = `${base}123`;
+            }
+        }
+
+        nameInput.addEventListener("input", updateFields);
+        surnameInput.addEventListener("input", updateFields);
+    });
+</script>

@@ -79,5 +79,39 @@ namespace EduVerse.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        public IActionResult AddNewSchoolAccount(Guid SchoolId)
+        {
+            if(!User.IsInRole("USER"))
+            {
+                return NotFound();
+            }
+
+            var UserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            User? UserData = null;
+
+            if(Guid.TryParse(UserIdClaim, out var UserId))
+            {
+                UserData = _context.Users.Where(u => u.Id == UserId).Include(u => u.SchoolAccount).FirstOrDefault();
+            }
+            if(UserData == null)
+            {
+                return NotFound();
+            }
+
+            bool CanManageAccounts = HttpContext.Session.GetString("CanManageAccounts") == "True";
+
+            if(!CanManageAccounts || UserData.SchoolAccount!.SchoolId != SchoolId)
+            {
+                return Unauthorized();
+            }
+
+            ViewBag.SchoolId = SchoolId;
+            ViewBag.Shortcut = _context.Schools.Where(s => s.Id == SchoolId).Select(s => s.NameShortcut).FirstOrDefault();
+            ViewBag.SchoolRoles = _context.SchoolRoles.Where(sr => sr.SchoolId ==  SchoolId).ToList();
+
+            return View();
+        }
     }
 }

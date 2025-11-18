@@ -6,15 +6,15 @@
 <h1>@ViewData["Title"]</h1>
 
 <div class="mb-3 d-flex gap-2">
-    <a asp-action="Create" class="btn btn-primary">Add New User</a>
+    <a asp-action="AddNewSchoolAccount" asp-route-SchoolId="@ViewBag.SchoolId" class="btn btn-success">Add New School Account</a>
 </div>
 
 <form method="get" class="mb-4">
     <div class="d-flex gap-2">
-        <input type="text" name="SchoolId" value="@ViewBag.SchoolId" hidden />
-        <input type="text" name="search" value="@Context.Request.Query["Search"]" class="form-control" placeholder="Search by name, surname or username..." />
+        <input name="SchoolId" value="@ViewBag.SchoolId" hidden />
+        <input type="text" name="Search" value="@Context.Request.Query["Search"]" class="form-control" placeholder="Search by name, surname or username..." />
 
-        <select name="roleId" class="form-select">
+        <select name="Role" class="form-select">
             <option value="">All Roles</option>
             @foreach(var role in ViewBag.Roles)
             {
@@ -44,7 +44,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var user in Model)
+        @foreach(var user in Model)
         {
             <tr>
                 <td>@user.Name</td>
