@@ -127,10 +127,48 @@ namespace EduVerse.Controllers
                     }
                 }
 
-                return RedirectToAction("Index", "Home");
+                if(!VerifyPassword(user.Name.ToLower() + "." + user.Surname.ToLower(), user))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return RedirectToAction("FirstLoginAttempt", new {UserId =  user.Id});
+                }
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult FirstLoginAttempt(Guid UserId)
+        {
+            ViewBag.UserId = UserId;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FirstLoginAttempt(FirstLoginAttemptViewModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Id == model.UserId);
+                if(user == null)
+                {
+                    return NotFound();
+                }
+
+                user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.UserId = model.UserId;
+            return View();
         }
 
         [HttpGet]

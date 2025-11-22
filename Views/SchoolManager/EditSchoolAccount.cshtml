@@ -1,6 +1,6 @@
-﻿@model NewSchoolAccountViewModel
+﻿@model EditSchoolAccountViewModel
 @{
-    ViewData["Title"] = "Create New School Account";
+    ViewData["Title"] = "Edit School Account";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -8,21 +8,22 @@
 <div class="row">
     <div class="col-md-8">
         <section>
-            <form asp-action="AddNewSchoolAccount" method="post">
+            <form asp-action="EditSchoolAccount" method="post">
                 <hr />
-                <input asp-for="SchoolId" value="@ViewBag.SchoolId" hidden/>
+                <input asp-for="SchoolId" value="@ViewBag.SchoolId" hidden />
+                <input asp-for="SchoolAccountId" value="@ViewBag.SchoolAccountId" hidden />
                 <div class="form-floating mb-3">
-                    <input asp-for="Name" class="form-control" autocomplete="name" aria-required="true" placeholder="Enter user name" />
+                    <input asp-for="Name" class="form-control" autocomplete="name" aria-required="true" placeholder="Enter user name" readonly="@(!ViewBag.CanEdit)" />
                     <label asp-for="Name" class="form-label">Name</label>
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Surname" class="form-control" autocomplete="surname" aria-required="true" placeholder="Enter user surname" />
+                    <input asp-for="Surname" class="form-control" autocomplete="surname" aria-required="true" placeholder="Enter user surname" readonly="@(!ViewBag.CanEdit)" />
                     <label asp-for="Surname" class="form-label">Surname</label>
                     <span asp-validation-for="Surname" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <select asp-for="SchoolRoleId" class="form-select">
+                    <select asp-for="SchoolRoleId" class="form-select" disabled="@(!ViewBag.CanEdit)">
                         <option value="@Guid.Empty">All Roles</option>
                         @foreach(var role in ViewBag.SchoolRoles)
                         {
@@ -33,24 +34,24 @@
                     <span asp-validation-for="SchoolRoleId" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Username" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter user username" readonly/>
+                    <input asp-for="Username" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter user username" readonly />
                     <label asp-for="Username" class="form-label">Username</label>
                     <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Email" class="form-control" autocomplete="Email" aria-required="true" placeholder="Enter user email" readonly/>
+                    <input asp-for="Email" class="form-control" autocomplete="Email" aria-required="true" placeholder="Enter user email" readonly />
                     <label asp-for="Email" class="form-label">Email</label>
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter user password" readonly/>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter user password" readonly />
                     <label asp-for="Password" class="form-label">Password</label>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                 <div class="d-flex justify-content-between gap-3">
-                    <a class="w-50 btn btn-lg btn-secondary" asp-controller="SchoolManager" asp-action="ManageAccounts" asp-route-SchoolId="@ViewBag.SchoolId">Cancel</a>
-                    <button type="submit" class="w-50 btn btn-lg btn-primary">Add New School Account</button>
+                    <a class="w-50 btn btn-lg btn-secondary" asp-controller="SchoolManager" asp-action="SchoolAccountDetails" asp-route-SchoolId="@ViewBag.SchoolId" asp-route-SchoolAccountId="@Model.SchoolAccountId">Cancel</a>
+                    <button type="submit" class="w-50 btn btn-lg btn-primary" disabled="@(!ViewBag.CanEdit)">Edit School Account</button>
                 </div>
             </form>
         </section>
@@ -75,8 +76,7 @@
             const roleValue = roleSelect.value;
             const roleName = roleSelect.options[roleSelect.selectedIndex].text.trim().toLowerCase();
 
-            // Stop only if fields are incomplete
-            if (!name || !surname || roleValue === emptyGuid) {
+            if(!name || !surname || roleValue === emptyGuid) {
                 usernameInput.value = "";
                 emailInput.value = "";
                 passwordInput.value = "";

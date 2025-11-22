@@ -1,13 +1,18 @@
 ﻿using EduVerse.Data;
 using EduVerse.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Security.Principal;
 
 namespace EduVerse.Services
 {
     public interface ISchoolService
     {
         Task CreateSchoolAsync(Guid RequestId);
+        Task AddNewAccountAsync(NewSchoolAccountViewModel Model);
+        Task EditAccountAsync(EditSchoolAccountViewModel Model);
     }
 
     public class SchoolService : ISchoolService
@@ -52,7 +57,6 @@ namespace EduVerse.Services
 
             var PrincipalRole = new SchoolRole
             {
-                Id = Guid.NewGuid(),
                 SchoolId = NewSchool.Id,
                 Name = "Principal",
                 NormalizedName = "PRINCIPAL",
@@ -69,18 +73,68 @@ namespace EduVerse.Services
 
             _context.SchoolRoles.Add(PrincipalRole);
 
+            _context.SchoolRoles.AddRange(
+                new SchoolRole { 
+                    SchoolId = NewSchool.Id,
+                    Name = "Teacher",
+                    NormalizedName = "TEACHER",
+                    Hierarchy = 4,
+                    IsParent = false,
+                    IsStudent = false,
+                    IsStaff = true,
+                    CanManageAccounts = false,
+                    CanManageRoles = false,
+                    CanManageGroups = true,
+                    CanManageCourses = true,
+                    CanManageStudents = true
+                },
+                
+                new SchoolRole {
+                    SchoolId = NewSchool.Id,
+                    Name = "Student",
+                    NormalizedName = "STUDENT",
+                    Hierarchy = 8,
+                    IsParent = false,
+                    IsStudent = true,
+                    IsStaff = false,
+                    CanManageAccounts = false,
+                    CanManageRoles = false,
+                    CanManageGroups = false,
+                    CanManageCourses = false,
+                    CanManageStudents = false
+                },
+
+                new SchoolRole {
+                    SchoolId = NewSchool.Id,
+                    Name = "Parent",
+                    NormalizedName = "PARENT",
+                    Hierarchy = 10,
+                    IsParent = true,
+                    IsStudent = false,
+                    IsStaff = false,
+                    CanManageAccounts = false,
+                    CanManageRoles = false,
+                    CanManageGroups = false,
+                    CanManageCourses = false,
+                    CanManageStudents = false
+                }
+            );
+
+            string UsernameSchema = char.ToLower(Request.PrincipalName[0]) + "." + Request.PrincipalSurname.ToLower() + "0." + Request.SchoolNameShortcut.ToLower() + "." + PrincipalRole.Name.ToLower();
+            string EmailSchema = char.ToLower(Request.PrincipalName[0]) + "." + Request.PrincipalSurname.ToLower() + "0@eduverse." + Request.SchoolNameShortcut.ToLower() + "." + PrincipalRole.Name.ToLower() + ".edu.com";
+
             var PrincipalUser = new User
             {
                 Id = new Guid(),
                 Name = Request.PrincipalName,
                 Surname = Request.PrincipalSurname,
-                UserName = Request.PrincipalName.ToLower() + "." + Request.PrincipalSurname.ToLower(),
-                NormalizedUserName = Request.PrincipalName.ToUpper() + "." + Request.PrincipalSurname.ToUpper(),
-                Email = Request.PrincipalName.ToLower() + "." + Request.PrincipalSurname.ToLower() + "@eduverse." + Request.SchoolNameShortcut.ToLower() + ".edu.com",
-                NormalizedEmail = Request.PrincipalName.ToUpper() + "." + Request.PrincipalSurname.ToUpper() + "@EDUVERSE." + Request.SchoolNameShortcut.ToUpper() + ".EDU.COM",
+                UserName = UsernameSchema,
+                NormalizedUserName = UsernameSchema.ToUpper(),
+                Email = EmailSchema,
+                NormalizedEmail = EmailSchema.ToUpper(),
             };
 
-            PrincipalUser.PasswordHash = _passwordHasher.HashPassword(PrincipalUser, Request.PrincipalName.ToLower() + "." + Request.PrincipalSurname.ToLower() + "123");
+            PrincipalUser.PasswordHash = _passwordHasher.HashPassword(PrincipalUser, Request.PrincipalName.ToLower() + "." + Request.PrincipalSurname.ToLower());
 
             _context.Users.Add(PrincipalUser);
 
@@ -97,6 +151,144 @@ namespace EduVerse.Services
 
             _context.SchoolAccounts.Add(PrincipalAccount);
             PrincipalUser.SchoolAccountId = PrincipalAccount.Id;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddNewAccountAsync(NewSchoolAccountViewModel Model)
+        {
+            string Shortcut = _context.Schools
+                .Where(s => s.Id == Model.SchoolId)
+                .Select(s => s.NameShortcut)
+                .First();
+
+            string RoleName = _context.SchoolRoles
+                .Where(sr => sr.Id == Model.SchoolRoleId)
+                .Select(sr => sr.Name)
+                .First();
+
+            string StartUsername =
+                $"{char.ToLower(Model.Name[0])}." +
+                $"{Model.Surname.ToLower()}";
+
+            string EndUsername =
+                $".{Shortcut.ToLower()}." +
+                $"{RoleName.ToLower()}";
+
+            var ExistingUsernames = _context.SchoolAccounts
+                .Include(sa => sa.User)
+                .Where(sa => sa.SchoolId == Model.SchoolId && (sa.User!.UserName!.StartsWith(StartUsername) && sa.User!.UserName!.EndsWith(EndUsername)))
+                .Select(sa => sa.User!.UserName)
+                .ToList();
+
+            int Index = 0;
+
+            while(ExistingUsernames.Contains(StartUsername + Index + EndUsername))
+            {
+                Index++;
+            }
+
+            string FinalUsername = StartUsername + Index + EndUsername;
+
+            Model.Username = FinalUsername;
+            Model.Email = $"{char.ToLower(Model.Name[0])}.{Model.Surname.ToLower()}{Index}" + $"@eduverse.{Shortcut.ToLower()}.{RoleName.ToLower()}.edu.com";
+
+            var SchoolUser = new User
+            {
+                Id = new Guid(),
+                Name = Model.Name,
+                Surname = Model.Surname,
+                UserName = Model.Username,
+                NormalizedUserName = Model.Username.ToUpper(),
+                Email = Model.Email,
+                NormalizedEmail = Model.Email.ToUpper()
+            };
+
+            SchoolUser.PasswordHash = _passwordHasher.HashPassword(SchoolUser, Model.Password);
+
+            _context.Users.Add(SchoolUser);
+
+            Role UserRole = _context.Roles.First(r => r.NormalizedName == "USER");
+            _context.UserRoles.Add(new UserRole { UserId = SchoolUser.Id, RoleId = UserRole.Id });
+
+            var SchoolAccount = new SchoolAccount
+            {
+                Id = Guid.NewGuid(),
+                UserId = SchoolUser.Id,
+                SchoolId = Model.SchoolId,
+                SchoolRoleId = Model.SchoolRoleId
+            };
+
+            _context.SchoolAccounts.Add(SchoolAccount);
+            SchoolUser.SchoolAccountId = SchoolAccount.Id;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EditAccountAsync(EditSchoolAccountViewModel Model)
+        {
+            var user = _context.SchoolAccounts.Where(sa => sa.Id == Model.SchoolAccountId).Include(sa => sa.User).Include(sa => sa.SchoolRole).FirstOrDefault();
+            if(user == null)
+            {
+                return;
+            }
+
+            bool NeedNewNames = !string.Equals(user.User!.Name, Model.Name, StringComparison.Ordinal) ||
+                !string.Equals(user.User!.Surname, Model.Surname, StringComparison.Ordinal) ||
+                user.SchoolRoleId != Model.SchoolRoleId;
+
+            if(NeedNewNames)
+            {
+                string Shortcut = _context.Schools
+                    .Where(s => s.Id == Model.SchoolId)
+                    .Select(s => s.NameShortcut)
+                    .First();
+
+                string RoleName = _context.SchoolRoles
+                    .Where(sr => sr.Id == Model.SchoolRoleId)
+                    .Select(sr => sr.Name)
+                    .First();
+
+                string StartUsername =
+                    $"{char.ToLower(Model.Name[0])}." +
+                    $"{Model.Surname.ToLower()}";
+
+                string EndUsername =
+                    $".{Shortcut.ToLower()}." +
+                    $"{RoleName.ToLower()}";
+
+                var ExistingUsernames = _context.SchoolAccounts
+                    .Include(sa => sa.User)
+                    .Where(sa => sa.SchoolId == Model.SchoolId && sa.Id != Model.SchoolAccountId && (sa.User!.UserName!.StartsWith(StartUsername) && sa.User!.UserName!.EndsWith(EndUsername)))
+                    .Select(sa => sa.User!.UserName)
+                    .ToList();
+
+                int Index = 0;
+
+                while(ExistingUsernames.Contains(StartUsername + Index + EndUsername))
+                {
+                    Index++;
+                }
+
+                string FinalUsername = StartUsername + Index + EndUsername;
+
+                Model.Username = FinalUsername;
+                Model.Email = $"{char.ToLower(Model.Name[0])}.{Model.Surname.ToLower()}{Index}" + $"@eduverse.{Shortcut.ToLower()}.{RoleName.ToLower()}.edu.com";
+            }
+
+            user.User.Name = Model.Name;
+            user.User.Surname = Model.Surname;
+            user.User.UserName = Model.Username;
+            user.User.NormalizedUserName = Model.Username.ToUpper();
+            user.User.Email = Model.Email;
+            user.User.NormalizedEmail = Model.Email.ToUpper();
+            user.User.PasswordHash = _passwordHasher.HashPassword(user.User, Model.Password);
+
+            _context.Users.Update(user.User);
+
+            user.SchoolRoleId = Model.SchoolRoleId;
+
+            _context.SchoolAccounts.Update(user);
 
             await _context.SaveChangesAsync();
         }

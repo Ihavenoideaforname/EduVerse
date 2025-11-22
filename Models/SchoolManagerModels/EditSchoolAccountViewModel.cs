@@ -2,7 +2,7 @@
 
 namespace EduVerse.Models
 {
-    public class NewSchoolAccountViewModel
+    public class EditSchoolAccountViewModel
     {
         [Required(ErrorMessage = "Name is required.")]
         [MaxLength(100, ErrorMessage = "Name can't exceed 100 characters.")]
@@ -18,6 +18,7 @@ namespace EduVerse.Models
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public Guid SchoolAccountId { get; set; }
         public Guid SchoolId { get; set; }
         public Guid SchoolRoleId { get; set; }
     }

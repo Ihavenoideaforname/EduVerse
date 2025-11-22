@@ -39,7 +39,7 @@
             <th>Name</th>
             <th>Surname</th>
             <th>Username</th>
-            <th>School Role</th>
+            <th>Role</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -52,8 +52,8 @@
                 <td>@user.Username</td>
                 <td>@user.SchoolRole</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">Details</a>
-                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a asp-action="SchoolAccountDetails" asp-route-SchoolId="@ViewBag.SchoolId" asp-route-SchoolAccountId="@user.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                    <a asp-action="EditSchoolAccount" asp-route-SchoolId="@ViewBag.SchoolId" asp-route-SchoolAccountId="@user.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
                     <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="d-inline">
                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</button>
                     </form>
